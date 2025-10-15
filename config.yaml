@@ -1,0 +1,6 @@
+kafka:
+  bootstrap_servers: "127.0.0.1:9092"
+  topic: "test_topic"
+redis:
+  host: "127.0.0.1"
+  port: 6379
