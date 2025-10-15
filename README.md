@@ -18,15 +18,21 @@ The data flows through the system in the following sequence:
 4.  **FastAPI & Redis Pub/Sub**: The `websocket_server.py` is subscribed to the Redis channel. Upon receiving a new message, it immediately pushes the data to all connected front-end clients through a WebSocket connection.
 5.  **React Frontend**: The client-side application listens for WebSocket messages and updates the UI components in real-time to reflect the new data.
 
+## Architecture
 ```mermaid
 graph TD
-    A[Python Producer] -->|Sends Events| B(Kafka Topic);
-    B -->|Stream of Events| C[Consumer Script <br> (auto_kafka_redis.py)];
-    C -->|Caches Data & Publishes| D{Redis};
-    D -->|Listens to Channel| E[FastAPI WebSocket Server];
-    E -->|Broadcasts Data| F[React Frontend UI];
+    A[Python Producer] -->|Sends Events| B(Kafka Topic)
+    B -->|Stream of Events| C[Consumer Script  auto_kafka_redis.py]
+    C -->|Caches Data & Publishes| D{Redis}
+    D -->|Listens to Channel| E[FastAPI WebSocket Server]
+    E -->|Broadcasts Data| F[React Frontend UI]
 ```
----
+
+**Data Flow:**
+1. Python producer sends events to Kafka topic
+2. Consumer script reads from Kafka and pushes to Redis pub/sub
+3. FastAPI server listens to Redis channel and forwards via WebSocket
+4. React frontend displays events in real-time
 
 ## 🛠️ Tech Stack
 
