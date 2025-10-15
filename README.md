@@ -115,13 +115,10 @@ graph TD
 ## 📸 Screenshots
 
 ### Kafka Ingestion & Redis Publishing
-*(Your screenshot of the consumer log showing messages being read from Kafka and published to Redis)*
+![Kafka Consumer Log](./AutoEventIngestion.jpg)
 
 ### WebSocket Server Log
-*(Your screenshot of the FastAPI server log showing messages being received from Redis and broadcasted)*
+![WebSocket Server Log](./Websocket.jpg)
 
 ### Web UI Dashboard
-*(Your screenshot of the final React UI displaying the real-time data)*
-
-* **Add a new event type:** Simply add a new event generator function in `producer.py`.
-* **Add a new notification channel:** Add a `send_push_notification()` function in `consumer.py` and update the logic to check user preferences for this new channel.
+![Web UI Dashboard](./WebUI.jpg)
