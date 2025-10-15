@@ -1,129 +1,120 @@
-# eventstream-notify 🚀
+# 📊 Event Stream Dashboard
 
-A real-time, event-driven notification system powered by Apache Kafka and Redis. This project simulates a production-style micro-event pipeline where user actions are ingested, processed, and trigger notifications, making it an excellent showcase of data engineering and backend architecture skills.
+A real-time event monitoring dashboard that visualizes a data pipeline flowing from Kafka through Redis to a web-based UI via WebSockets.
 
----
+## ✨ Overview
 
-## 🧭 Core Idea
-
-This system mimics how modern applications handle notifications. A **producer** sends events (like `user_signup` or `item_purchased`) to a Kafka topic. A **consumer** listens to these events, looks up user preferences from a fast Redis cache, and then sends the appropriate notification (e.g., email, SMS, or just a log message).
+This project demonstrates a scalable, real-time data processing pipeline. A Python script **produces** events into a Kafka topic. A **consumer** service reads these events, processes them, and pushes them to Redis. A **FastAPI WebSocket server** listens to a Redis Pub/Sub channel and broadcasts incoming messages to all connected clients. Finally, a **React frontend** receives this data and displays it in a dynamic, real-time dashboard.
 
 ---
 
-## 🧩 Architecture
+## 🏗️ Architecture & Data Flow
 
-The data flow is designed to be simple, scalable, and decoupled.
+The data flows through the system in the following sequence:
 
-            ┌────────────────┐
-            │ Event Producer │
-            │ (Python script)│
-            └──────┬─────────┘
-                   │ JSON events
-                   ▼
-            ┌────────────────┐
-            │   Kafka Topic  │
-            │  "user_events" │
-            └──────┬─────────┘
-                   │
-                   ▼
-    ┌──────────────────────────┐
-    │ Notification Consumer    │
-    │ (Python service)         │
-    │ 1. Reads from Kafka      │
-    │ 2. Looks up user prefs in│
-    │    Redis (e.g. email/SMS)│
-    │ 3. Sends notification    │
-    └──────┬───────────────────┘
-           │
-           ▼
-    ┌──────────────────────┐
-    │ Output:              │
-    │  → Mock Email / SMS  │
-    │  → Console Log       │
-    └──────────────────────┘
+1.  **Producer**: A Python script (`producer.py`) generates and sends event messages to a designated Kafka topic.
+2.  **Kafka**: Acts as the distributed streaming platform, ingesting and storing the event stream reliably.
+3.  **Consumer to Redis**: The `auto_kafka_redis.py` service consumes messages from the Kafka topic. It then caches the data in Redis and simultaneously publishes it to a Redis channel (`pub/sub`).
+4.  **FastAPI & Redis Pub/Sub**: The `websocket_server.py` is subscribed to the Redis channel. Upon receiving a new message, it immediately pushes the data to all connected front-end clients through a WebSocket connection.
+5.  **React Frontend**: The client-side application listens for WebSocket messages and updates the UI components in real-time to reflect the new data.
 
-
-
-    ---
-
-## ✨ Key Features
-
-* **Event-Driven:** Built on a producer/consumer model for a scalable and resilient system.
-* **Real-Time Processing:** Instantly processes events as they arrive.
-* **Data Enrichment:** Uses Redis for high-speed data lookups to enrich events with user data.
-* **Modular & Extensible:** Easily add new event types (e.g., `password_reset`) or notification channels (e.g., push notifications).
-* **Local-First Setup:** Runs on a single machine without Docker, making it simple to set up and demonstrate.
+graph TD
+    A[Python Producer] -->|Sends Events| B(Kafka Topic);
+    B -->|Stream of Events| C[Consumer Script <br> (auto_kafka_redis.py)];
+    C -->|Caches Data & Publishes| D{Redis};
+    D -->|Listens to Channel| E[FastAPI WebSocket Server];
+    E -->|Broadcasts Data| F[React Frontend UI];
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Message Broker:** Apache Kafka
-* **Cache / In-Memory Database:** Redis
-* **Core Logic:** Python
-* **Python Libraries:** `confluent-kafka-python`, `redis-py`, `schedule`
+-   **Backend**: Python, FastAPI
+-   **Streaming**: Apache Kafka
+-   **Caching & Pub/Sub**: Redis
+-   **Frontend**: React
+-   **Configuration**: YAML
 
 ---
 
-## ⚙️ Getting Started
-
-Follow these steps to get the system up and running on your local machine.
+## 🚀 Getting Started
 
 ### Prerequisites
 
-1.  **Python 3.8+** installed.
-2.  **Apache Kafka** installed and binaries available in your `PATH`. You can download it [here](https://kafka.apache.org/downloads).
-3.  **Redis** installed and running. You can download it [here](https://redis.io/docs/getting-started/installation/).
+-   Python 3.8+
+-   Node.js and npm
+-   Docker (Recommended for running Kafka and Redis)
+-   An active Kafka and Redis instance.
 
 ### Installation & Setup
 
 1.  **Clone the repository:**
-    ```sh
-    git clone [https://github.com/your-username/eventstream-notify.git](https://github.com/your-username/eventstream-notify.git)
-    cd eventstream-notify
+    ```bash
+    git clone <your-repo-url>
+    cd event-stream-dashboard
     ```
 
-2.  **Create a virtual environment and install dependencies:**
-    ```sh
-    # For macOS/Linux
-    python3 -m venv venv
-    source venv/bin/activate
+2.  **Backend Setup:**
+    -   Create and activate a virtual environment:
+        ```bash
+        python -m venv venv
+        source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+        ```
+    -   Install Python dependencies:
+        ```bash
+        pip install -r requirements.txt
+        ```
 
-    # For Windows
-    python -m venv venv
-    .\venv\Scripts\activate
+3.  **Frontend Setup:**
+    -   Navigate to the dashboard directory:
+        ```bash
+        cd dashboard
+        ```
+    -   Install npm packages:
+        ```bash
+        npm install
+        ```
 
-    # Install packages
-    pip install -r requirements.txt
-    ```
+4.  **Configuration:**
+    -   Update the `config.yaml` file with your Kafka and Redis server details (host, port, topic names, etc.).
 
-### Running the System
+### Running the Application
 
-1.  **Start Kafka & Redis (Manual Steps):**
-    * Open a terminal and start the ZooKeeper server.
-    * Open another terminal and start the Kafka server.
-    * Ensure your Redis server is running (`redis-server`).
+1.  **Start the Backend Services:**
+    -   Run the Kafka to Redis consumer script:
+        ```bash
+        python auto_kafka_redis.py
+        ```
+    -   Run the FastAPI WebSocket server:
+        ```bash
+        uvicorn websocket_server:app --reload
+        ```
 
-2.  **Launch the Automation Script:**
-    * Once the services above are running, open a new terminal, activate the virtual environment, and run the main controller script:
-    ```sh
-    python main_controller.py
-    ```
+2.  **Start the Frontend:**
+    -   In the `dashboard` directory, run:
+        ```bash
+        npm start
+        ```
 
-3.  **What the script does:**
-    * Checks for and creates the `user_events` Kafka topic if it doesn't exist.
-    * Seeds Redis with sample user data and notification preferences.
-    * Starts the notification **consumer** in a background thread.
-    * Starts the event **producer**, which will periodically send mock events to Kafka.
-
-4.  **Observe the Output:**
-    * Watch the terminal! You will see logs from the consumer indicating that it has received an event, fetched user data from Redis, and "sent" a notification to the console.
+3.  **Start the Producer:**
+    -   To generate sample data, run the producer script in a new terminal:
+        ```bash
+        python producer.py
+        ```
+    -   Now, open your browser to `http://localhost:3000` to see the real-time updates!
 
 ---
 
-## 🔧 Extensibility
+## 📸 Screenshots
 
-Want to add a new feature? It's easy!
+### Kafka Ingestion & Redis Publishing
+*(Your screenshot of the consumer log showing messages being read from Kafka and published to Redis)*
+
+### WebSocket Server Log
+*(Your screenshot of the FastAPI server log showing messages being received from Redis and broadcasted)*
+
+### Web UI Dashboard
+*(Your screenshot of the final React UI displaying the real-time data)*
 
 * **Add a new event type:** Simply add a new event generator function in `producer.py`.
 * **Add a new notification channel:** Add a `send_push_notification()` function in `consumer.py` and update the logic to check user preferences for this new channel.
